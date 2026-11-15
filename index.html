@@ -3,7 +3,7 @@
 <head>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1613">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F1">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F1">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Buku Kas</title>
@@ -545,6 +545,9 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
           label: BLNF[i - 1], go: 'bulanan', anchor: y + '-' + pad(i) + '-01' });
       }
     }
+    return out;
+  }
+
   function kasEffect(x) {
     if (x.tipe === 'masuk') return x.jumlah;
     if (x.tipe === 'keluar') return -x.jumlah;
@@ -564,9 +567,6 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     });
     return { before: before, masuk: masuk, keluar: keluar, transfer: transfer,
              saldo: before + masuk - keluar - transfer };
-  }
-    });
-    return { before: before, masuk: masuk, keluar: keluar, saldo: before + masuk - keluar };
   }
 
   function el(tag, cls, text) {
@@ -590,15 +590,15 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   function showErr(text, info) {
     var n = $('#err');
     n.textContent = text || '';
+    n.classList.toggle('info', !!info);
+  }
+
   var TIPE_VALID = ['masuk', 'keluar', 'setor', 'ambil'];
 
   function clean(list) {
     return list.filter(function (x) {
       return x && TIPE_VALID.indexOf(x.tipe) !== -1 && typeof x.jumlah === 'number' &&
         isFinite(x.jumlah) && x.jumlah > 0 && typeof x.ket === 'string' &&
-        typeof x.tgl === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.tgl);
-    });
-                                                                      }
         typeof x.tgl === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.tgl);
     });
   }
