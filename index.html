@@ -545,16 +545,26 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
           label: BLNF[i - 1], go: 'bulanan', anchor: y + '-' + pad(i) + '-01' });
       }
     }
-    return out;
+  function kasEffect(x) {
+    if (x.tipe === 'masuk') return x.jumlah;
+    if (x.tipe === 'keluar') return -x.jumlah;
+    if (x.tipe === 'setor' && x.sumber === 'kas') return -x.jumlah;
+    return 0;
   }
 
   function totals(s, e) {
-    var before = 0, masuk = 0, keluar = 0;
+    var before = 0, masuk = 0, keluar = 0, transfer = 0;
     items.forEach(function (x) {
-      var v = x.tipe === 'masuk' ? x.jumlah : -x.jumlah;
+      var v = kasEffect(x);
       if (x.tgl < s) { before += v; return; }
       if (x.tgl > e) return;
-      if (x.tipe === 'masuk') masuk += x.jumlah; else keluar += x.jumlah;
+      if (x.tipe === 'masuk') masuk += x.jumlah;
+      else if (x.tipe === 'keluar') keluar += x.jumlah;
+      else if (x.tipe === 'setor' && x.sumber === 'kas') transfer += x.jumlah;
+    });
+    return { before: before, masuk: masuk, keluar: keluar, transfer: transfer,
+             saldo: before + masuk - keluar - transfer };
+  }
     });
     return { before: before, masuk: masuk, keluar: keluar, saldo: before + masuk - keluar };
   }
@@ -580,13 +590,15 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   function showErr(text, info) {
     var n = $('#err');
     n.textContent = text || '';
-    n.classList.toggle('info', !!info);
-  }
+  var TIPE_VALID = ['masuk', 'keluar', 'setor', 'ambil'];
 
   function clean(list) {
     return list.filter(function (x) {
-      return x && (x.tipe === 'masuk' || x.tipe === 'keluar') && typeof x.jumlah === 'number' &&
+      return x && TIPE_VALID.indexOf(x.tipe) !== -1 && typeof x.jumlah === 'number' &&
         isFinite(x.jumlah) && x.jumlah > 0 && typeof x.ket === 'string' &&
+        typeof x.tgl === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.tgl);
+    });
+                                                                      }
         typeof x.tgl === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.tgl);
     });
   }
