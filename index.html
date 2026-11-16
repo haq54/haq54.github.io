@@ -226,6 +226,9 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   .fields { grid-template-columns: 1fr 1fr; }
   .field.f-ket, .fields .btn { grid-column: 1 / -1; }
 }
+.btn.opt { height: auto; padding: 12px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+.btn.opt small { font-weight: 400; opacity: 0.85; font-size: 0.82rem; }
+.btn.opt[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
 @keyframes bump { 0% { transform: translateY(-4px); opacity: 0.4; } 100% { transform: none; opacity: 1; } }
 .bump { animation: bump 0.45s ease-out; }
 @media (prefers-reduced-motion: reduce) { .bump { animation: none; } .fill { transition: none; } }
@@ -267,15 +270,33 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     </div>
   </section>
 
+  <!-- ===== Pilih fitur ===== -->
+  <section class="auth" id="pilih" hidden>
+    <header><h1>Pilih fitur</h1></header>
+    <div class="auth-card">
+      <p class="auth-sub">Mau pakai yang mana? Kamu bisa menggantinya kapan saja lewat tombol "Ganti fitur".</p>
+      <button type="button" class="btn opt" data-f="kas" aria-pressed="false">Kas<small>Catat pemasukan dan pengeluaran</small></button>
+      <button type="button" class="btn opt" data-f="tabungan" aria-pressed="false">Tabungan<small>Catat setor dan ambil tabungan</small></button>
+      <button type="button" class="btn opt" data-f="keduanya" aria-pressed="false">Kas dan Tabungan<small>Dua-duanya, dengan setor dari kas ke tabungan</small></button>
+      <button type="button" class="link" id="pilihBatal" style="align-self:center" hidden>Batal</button>
+    </div>
+  </section>
+
   <!-- ===== Aplikasi utama (tampil setelah login) ===== -->
   <div id="app" hidden style="display:contents">
   <header>
-    <h1>Buku Kas</h1>
+    <h1 id="appTitle">Buku Kas</h1>
     <p class="periode" id="periode"></p>
   </header>
   <div class="userbar">
     <span class="email" id="userEmail"></span>
+    <button type="button" class="link" id="gantiFitur">Ganti fitur</button>
     <button type="button" class="link" id="logout">Keluar</button>
+  </div>
+
+  <div class="views" id="pageSw" style="grid-template-columns:1fr 1fr" hidden>
+    <button type="button" data-p="kas" aria-pressed="true">Kas</button>
+    <button type="button" data-p="tabungan" aria-pressed="false">Tabungan</button>
   </div>
 
   <nav class="period" aria-label="Periode">
@@ -302,14 +323,15 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       <div class="label" id="saldoLabel">Saldo akhir</div>
       <span class="saldo-val" id="saldo">Rp&nbsp;0</span>
       <p class="awal" id="awal"></p>
+      <p class="awal" id="transferNote" hidden></p>
     </div>
     <div class="split">
       <div class="stat in">
-        <span class="label"><span class="dot"></span>Pemasukan</span>
+        <span class="label"><span class="dot"></span><span id="lblMasuk">Pemasukan</span></span>
         <span class="stat-val" id="tMasuk">Rp&nbsp;0</span>
       </div>
       <div class="stat out">
-        <span class="label"><span class="dot"></span>Pengeluaran</span>
+        <span class="label"><span class="dot"></span><span id="lblKeluar">Pengeluaran</span></span>
         <span class="stat-val" id="tKeluar">Rp&nbsp;0</span>
       </div>
     </div>
@@ -327,8 +349,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 
   <form class="entry" id="form" autocomplete="off" novalidate>
     <div class="seg" role="radiogroup" aria-label="Jenis catatan">
-      <label><input type="radio" name="tipe" value="masuk" checked><span>Pemasukan</span></label>
-      <label><input type="radio" name="tipe" value="keluar"><span>Pengeluaran</span></label>
+      <label><input type="radio" name="tipe" value="masuk" checked><span id="rdMasuk">Pemasukan</span></label>
+      <label><input type="radio" name="tipe" value="keluar"><span id="rdKeluar">Pengeluaran</span></label>
     </div>
     <div class="fields">
       <div class="field">
@@ -357,8 +379,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     </div>
     <div class="legend" id="dayLegend" hidden>
       <span><i class="k-saldo"></i>Saldo</span>
-      <span><i class="dk k-in"></i>Pemasukan</span>
-      <span><i class="dk k-out"></i>Pengeluaran</span>
+      <span><i class="dk k-in"></i><span id="lgMasuk">Pemasukan</span></span>
+      <span><i class="dk k-out"></i><span id="lgKeluar">Pengeluaran</span></span>
     </div>
     <div class="chart-box" id="dayBox" tabindex="0" role="group" aria-label="Grafik tangga saldo per catatan. Tombol panah kiri dan kanan berpindah antar catatan." hidden></div>
     <p class="day-empty" id="dayEmpty" hidden>Belum ada catatan di tanggal ini. Grafik muncul setelah kamu menambah catatan.</p>
@@ -395,8 +417,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <div class="head label" aria-hidden="true">
       <span style="grid-area:tgl">Tanggal</span>
       <span style="grid-area:ket">Keterangan</span>
-      <span class="num" style="grid-area:mas">Masuk</span>
-      <span class="num" style="grid-area:kel">Keluar</span>
+      <span class="num" id="hMasuk" style="grid-area:mas">Masuk</span>
+      <span class="num" id="hKeluar" style="grid-area:kel">Keluar</span>
       <span class="num" style="grid-area:sal">Saldo</span>
       <span style="grid-area:del"></span>
     </div>
@@ -407,8 +429,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <div class="tools"><span class="label" id="rtitle">Rincian</span></div>
     <div class="rhead label" aria-hidden="true">
       <span style="grid-area:rl">Periode</span>
-      <span class="num" style="grid-area:rm">Masuk</span>
-      <span class="num" style="grid-area:rk">Keluar</span>
+      <span class="num" id="rhMasuk" style="grid-area:rm">Masuk</span>
+      <span class="num" id="rhKeluar" style="grid-area:rk">Keluar</span>
       <span class="num" style="grid-area:rs">Saldo akhir</span>
     </div>
     <div id="rlist" role="list"></div>
@@ -472,6 +494,20 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   var dayClear = null;
   var unsub = null;      /* penghenti listener Firestore */
   var currentUser = null;
+  var allItems = [];     /* semua catatan mentah (kas + tabungan) dari Firestore */
+  var fitur = null;      /* 'kas' | 'tabungan' | 'keduanya' (pilihan pengguna, disimpan di perangkat) */
+  var page = 'kas';      /* halaman yang sedang dibuka: 'kas' | 'tabungan' */
+  var LABELS = {
+    kas: { title: 'Buku Kas', m: 'Pemasukan', k: 'Pengeluaran', mS: 'Masuk', kS: 'Keluar',
+      saldo: 'Saldo akhir', saldoNow: 'Saldo akhir (berjalan)', flow: 'Pemasukan & pengeluaran',
+      flowTitle: 'Saldo, pemasukan, dan pengeluaran', ph: 'Contoh: uang saku, makan siang',
+      dayNow: 'Pergerakan saldo hari ini', dayAt: 'Pergerakan saldo, ' },
+    tabungan: { title: 'Tabungan', m: 'Setor', k: 'Ambil', mS: 'Setor', kS: 'Ambil',
+      saldo: 'Saldo tabungan', saldoNow: 'Saldo tabungan (berjalan)', flow: 'Setor & ambil',
+      flowTitle: 'Saldo, setor, dan ambil', ph: 'Contoh: tabungan haji, sisa uang saku',
+      dayNow: 'Pergerakan tabungan hari ini', dayAt: 'Pergerakan tabungan, ' }
+  };
+  var LB = LABELS.kas;
 
   function pad(n) { return String(n).padStart(2, '0'); }
   function digits(s) { return String(s).replace(/\D/g, ''); }
@@ -603,6 +639,91 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     });
   }
 
+  /* Kaca mata per halaman: halaman tabungan melihat setor sebagai 'masuk' dan ambil sebagai 'keluar',
+     sehingga seluruh perhitungan, grafik, tabel, dan riwayat yang sudah ada bekerja tanpa diubah. */
+  function deriveItems() {
+    if (page === 'tabungan') {
+      return allItems.filter(function (x) { return x.tipe === 'setor' || x.tipe === 'ambil'; })
+        .map(function (x) { return Object.assign({}, x, { tipe: x.tipe === 'setor' ? 'masuk' : 'keluar', asli: x.tipe }); });
+    }
+    return allItems.filter(function (x) {
+      return x.tipe === 'masuk' || x.tipe === 'keluar' || (x.tipe === 'setor' && x.sumber === 'kas');
+    });
+  }
+  function rebuild() { items = deriveItems(); }
+
+  /* Saldo tabungan tidak boleh minus di titik waktu mana pun. */
+  function tabunganOK(list) {
+    var pot = list.filter(function (x) { return x.tipe === 'setor' || x.tipe === 'ambil'; })
+      .sort(function (a, b) { return a.tgl.localeCompare(b.tgl) || ((a.ts || 0) - (b.ts || 0)); });
+    var run = 0;
+    for (var i = 0; i < pot.length; i++) {
+      run += pot[i].tipe === 'setor' ? pot[i].jumlah : -pot[i].jumlah;
+      if (run < 0) return false;
+    }
+    return true;
+  }
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  function initPage() {
+    if (fitur === 'tabungan') page = 'tabungan';
+    else if (fitur === 'keduanya') page = lsGet('bk-halaman') === 'tabungan' ? 'tabungan' : 'kas';
+    else page = 'kas';
+  }
+
+  function setLabels() {
+    LB = LABELS[page];
+    SER.saldo.name = LB.saldo; SER.masuk.name = LB.m; SER.keluar.name = LB.k;
+    $('#appTitle').textContent = LB.title;
+    $('#lblMasuk').textContent = LB.m;  $('#lblKeluar').textContent = LB.k;
+    $('#rdMasuk').textContent = LB.m;   $('#rdKeluar').textContent = LB.k;
+    $('#lgMasuk').textContent = LB.m;   $('#lgKeluar').textContent = LB.k;
+    $('#hMasuk').textContent = LB.mS;   $('#hKeluar').textContent = LB.kS;
+    $('#rhMasuk').textContent = LB.mS;  $('#rhKeluar').textContent = LB.kS;
+    $('#flowBtn').textContent = LB.flow;
+    $('#ket').placeholder = LB.ph;
+    Array.prototype.forEach.call($('#pageSw').children, function (b) {
+      b.setAttribute('aria-pressed', b.dataset.p === page ? 'true' : 'false');
+    });
+    $('#pageSw').hidden = fitur !== 'keduanya';
+  }
+
+  function afterPageChange() {
+    filter = 'semua';
+    Array.prototype.forEach.call($('#tabs').children, function (c) {
+      c.setAttribute('aria-pressed', c.dataset.f === 'semua' ? 'true' : 'false');
+    });
+    form.elements.tipe.value = 'masuk';
+    armed = null;
+    showErr('');
+    rebuild();
+    setLabels();
+    syncDate();
+    render();
+  }
+  function setPage(p) {
+    if (p === page) return;
+    page = p;
+    if (fitur === 'keduanya') lsSet('bk-halaman', p);
+    afterPageChange();
+  }
+  function setFitur(f) {
+    fitur = f;
+    lsSet('bk-fitur', f);
+    initPage();
+    afterPageChange();
+    showScreen('app');
+  }
+  function openPilih(dariApp) {
+    $('#pilihBatal').hidden = !dariApp;
+    Array.prototype.forEach.call(document.querySelectorAll('#pilih .opt'), function (b) {
+      b.setAttribute('aria-pressed', b.dataset.f === fitur ? 'true' : 'false');
+    });
+    showScreen('pilih');
+  }
+
   function syncDate() {
     var r = getRange(), t = todayStr();
     $('#tgl').value = inRangeDate(r, t) ? t : r.start;
@@ -625,26 +746,29 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var running = inRangeDate(r, today);
 
     var t = totals(r.start, r.end);
-    $('#saldoLabel').textContent = running ? 'Saldo akhir (berjalan)' : 'Saldo akhir';
+    $('#saldoLabel').textContent = running ? LB.saldoNow : LB.saldo;
     var sEl = $('#saldo');
     setText(sEl, rp(t.saldo));
     sEl.classList.toggle('neg', t.saldo < 0);
     $('#awal').textContent = 'Saldo awal ' + rp(t.before);
+    var tn = $('#transferNote');
+    tn.hidden = !(page === 'kas' && t.transfer > 0);
+    tn.textContent = 'Dipindah ke tabungan ' + rp(t.transfer);
     setText($('#tMasuk'), rp(t.masuk));
     setText($('#tKeluar'), rp(t.keluar));
     var avail = t.before + t.masuk;
     var pct = avail > 0 ? Math.round(t.keluar / avail * 100) : (t.keluar > 0 ? 100 : 0);
     $('#fill').style.width = Math.min(100, pct) + '%';
     $('#meterNote').textContent = avail > 0
-      ? (pct > 100 ? 'Pengeluaran melebihi uang tersedia (' + rp(avail) + ')'
-        : 'Terpakai ' + pct + '% dari uang tersedia (' + rp(avail) + ')')
-      : (t.keluar > 0 ? 'Pengeluaran melebihi uang tersedia' : 'Belum ada catatan di periode ini.');
+      ? (pct > 100 ? LB.k + ' melebihi uang tersedia (' + rp(avail) + ')'
+        : (page === 'kas' ? 'Terpakai ' : 'Diambil ') + pct + '% dari uang tersedia (' + rp(avail) + ')')
+      : (t.keluar > 0 ? LB.k + ' melebihi uang tersedia' : 'Belum ada catatan di periode ini.');
 
     var avg = '';
     if (!isDaily && today >= r.start) {
       var effEnd = today < r.end ? today : r.end;
       var days = Math.round((toUTC(effEnd) - toUTC(r.start)) / DAY) + 1;
-      avg = 'Rata-rata pengeluaran ' + rp(Math.round(t.keluar / days)) + ' per hari (' + days + ' hari' + (today < r.end ? ' berjalan' : '') + ')';
+      avg = 'Rata-rata ' + LB.k.toLowerCase() + ' ' + rp(Math.round(t.keluar / days)) + ' per hari (' + days + ' hari' + (today < r.end ? ' berjalan' : '') + ')';
     }
     $('#avg').textContent = avg;
     $('#avg').hidden = !avg;
@@ -659,8 +783,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     $('#hint').hidden = isDaily;
     $('#rinci').hidden = isDaily;
     $('#add').disabled = !ready;
-    $('#clearSample').hidden = !items.some(function (x) { return x.contoh; });
-    $('#importLocal').hidden = !(ready && localCount() > 0);
+    $('#clearSample').hidden = !(page === 'kas' && items.some(function (x) { return x.contoh; }));
+    $('#importLocal').hidden = !(page === 'kas' && ready && localCount() > 0);
 
     if (isDaily) renderDaily(r); else renderRinci(r, today);
     drawDayChart();
@@ -677,10 +801,11 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var shown = day.filter(function (x) { return filter === 'semua' || x.tipe === filter; }).reverse();
 
     var cMasuk = day.filter(function (x) { return x.tipe === 'masuk'; }).length;
+    var cKeluar = day.filter(function (x) { return x.tipe === 'keluar'; }).length;
     var tabs = $('#tabs').children;
     tabs[0].textContent = 'Semua (' + day.length + ')';
-    tabs[1].textContent = 'Pemasukan (' + cMasuk + ')';
-    tabs[2].textContent = 'Pengeluaran (' + (day.length - cMasuk) + ')';
+    tabs[1].textContent = LB.m + ' (' + cMasuk + ')';
+    tabs[2].textContent = LB.k + ' (' + cKeluar + ')';
 
     var list = $('#list');
     list.textContent = '';
@@ -690,11 +815,15 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     }
     if (!items.length) {
       var e = el('div', 'empty');
-      e.append(el('p', null, 'Belum ada catatan. Pilih jenis, isi keterangan dan jumlah, lalu tekan Tambah. Total di atas langsung ikut berubah.'));
-      var b = el('button', 'btn', 'Isi contoh data');
-      b.type = 'button';
-      b.addEventListener('click', loadSample);
-      e.append(b);
+      e.append(el('p', null, page === 'kas'
+        ? 'Belum ada catatan. Pilih jenis, isi keterangan dan jumlah, lalu tekan Tambah. Total di atas langsung ikut berubah.'
+        : 'Belum ada catatan tabungan. Pilih Setor atau Ambil, isi keterangan dan jumlah, lalu tekan Tambah.'));
+      if (page === 'kas') {
+        var b = el('button', 'btn', 'Isi contoh data');
+        b.type = 'button';
+        b.addEventListener('click', loadSample);
+        e.append(b);
+      }
       list.append(e);
       return;
     }
@@ -822,7 +951,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     wrap.textContent = '';
     var t = document.createElement('table');
     var head = document.createElement('tr');
-    ['Periode', 'Saldo akhir', 'Pemasukan', 'Pengeluaran'].forEach(function (h) { head.append(el('th', null, h)); });
+    ['Periode', LB.saldo, LB.m, LB.k].forEach(function (h) { head.append(el('th', null, h)); });
     var th = document.createElement('thead');
     th.append(head);
     t.append(th);
@@ -853,7 +982,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var keys = showFlow ? ['saldo', 'masuk', 'keluar'] : ['saldo'];
     function val(row, k) { return k === 'saldo' ? row.saldo : row[k]; }
 
-    $('#chartTitle').textContent = showFlow ? 'Saldo, pemasukan, dan pengeluaran' : 'Saldo akhir';
+    $('#chartTitle').textContent = showFlow ? LB.flowTitle : LB.saldo;
     $('#chartSub').textContent = VIEW_UNIT[view] + ' · ' + cp.sub + ' · rb = ribu, jt = juta';
     buildTable(ps, rows, r.start);
     box.hidden = showTable;
@@ -984,7 +1113,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (!isDaily) return;
     var r = getRange();
     var box = $('#dayBox');
-    $('#dayTitle').textContent = inRangeDate(r, todayStr()) ? 'Pergerakan saldo hari ini' : 'Pergerakan saldo, ' + dm(r.start);
+    $('#dayTitle').textContent = inRangeDate(r, todayStr()) ? LB.dayNow : LB.dayAt + dm(r.start);
     var day = items.filter(function (x) { return x.tgl === r.start; })
       .sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
     box.hidden = !day.length;
@@ -1077,8 +1206,9 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       hg.append(dotEl(x, Y(p.bal), kindColor(p.kind), 'var(--surface)', 5));
       tip.textContent = '';
       tip.append(el('div', 'tt', p.label));
-      if (p.kind === 'masuk') tip.append(row('Pemasukan', 'dk k-in', '+' + rp(p.amt)));
-      else if (p.kind === 'keluar') tip.append(row('Pengeluaran', 'dk k-out', '−' + rp(p.amt)));
+      if (p.kind === 'masuk') tip.append(row(LB.m, 'dk k-in', '+' + rp(p.amt)));
+      else if (p.kind === 'keluar') tip.append(row(LB.k, 'dk k-out', '−' + rp(p.amt)));
+      else if (p.kind === 'setor') tip.append(row('Setor ke tabungan', 'dk k-saldo', '−' + rp(p.amt)));
       tip.append(row(p.kind === 'awal' ? 'Saldo awal' : 'Saldo sesudahnya', 'k-saldo', rp(p.bal)));
       tip.hidden = false;
       var tw = tip.offsetWidth, left = x + 12;
@@ -1121,6 +1251,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var k = el('div', 'ket');
     k.append(el('span', null, x.ket));
     if (x.contoh) k.append(el('span', 'tag', 'contoh'));
+    if (x.tipe === 'setor') k.append(el('span', 'tag', 'ke tabungan'));
+    if (x.asli === 'setor' && x.sumber === 'kas') k.append(el('span', 'tag', 'dari kas'));
     var isIn = x.tipe === 'masuk';
     var m = el('div', 'num masuk' + (isIn ? '' : ' nil'), isIn ? '+' + nf.format(x.jumlah) : '–');
     var o = el('div', 'num keluar' + (isIn ? ' nil' : ''), isIn ? '–' : '−' + nf.format(x.jumlah));
@@ -1152,6 +1284,12 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     }
     armed = null;
     clearTimeout(armTimer);
+    var rest = allItems.filter(function (x) { return x.id !== id; });
+    if (!tabunganOK(rest)) {
+      showErr('Catatan ini tidak bisa dihapus: saldo tabungan akan menjadi minus karena ada pengambilan sesudahnya.');
+      render();
+      return;
+    }
     render();
     backend.remove(id).catch(function () { showErr('Catatan belum terhapus. Coba lagi.'); });
   }
@@ -1233,7 +1371,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     };
     status('Menyinkronkan data…');
     unsub = col.onSnapshot(function (snap) {
-      items = clean(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+      allItems = clean(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+      rebuild();
       if (!snap.metadata.fromCache) {
         clearTimeout(timer);
         status('Tersinkron ke akun ' + (user.email || '') + '. Hanya kamu yang bisa melihatnya.');
@@ -1256,6 +1395,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   function stopSync() {
     if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
     items = [];
+    allItems = [];
     backend = null;
     ready = false;
     currentUser = null;
@@ -1266,6 +1406,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 
   function showScreen(which) {
     $('#splash').hidden = which !== 'splash';
+    $('#pilih').hidden = which !== 'pilih';
     $('#auth').hidden = which !== 'auth';
     $('#app').hidden = which !== 'app';
   }
@@ -1362,7 +1503,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     auth.onAuthStateChanged(function (user) {
       if (user) {
         $('#userEmail').textContent = user.email || '';
-        showScreen('app');
+        showScreen(fitur ? 'app' : 'pilih');
         startSync(user);
         $('#periode').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         anchor = todayStr();
@@ -1396,7 +1537,17 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (!(jumlah > 0)) { showErr('Isi jumlah lebih dari nol.'); $('#jumlah').focus(); return; }
     showErr('');
     /* Tutup keyboard/form langsung; Firestore menyimpan lokal dulu lalu sinkron saat online. */
-    var p = backend.add({ tipe: tipe, jumlah: jumlah, ket: ket, tgl: tgl, ts: Date.now() });
+    var rec = { tipe: tipe, jumlah: jumlah, ket: ket, tgl: tgl, ts: Date.now() };
+    if (page === 'tabungan') {
+      rec.tipe = tipe === 'masuk' ? 'setor' : 'ambil';
+      if (rec.tipe === 'setor') rec.sumber = fitur === 'keduanya' ? 'kas' : 'luar';
+      else if (!tabunganOK(allItems.concat([rec]))) {
+        showErr('Saldo tabungan tidak cukup pada tanggal itu.');
+        $('#jumlah').focus();
+        return;
+      }
+    }
+    var p = backend.add(rec);
     $('#ket').value = '';
     $('#jumlah').value = '';
     $('#ket').focus();
@@ -1475,6 +1626,22 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   }
   setInterval(checkNewDay, 60000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) checkNewDay(); });
+
+  /* ================= FITUR & HALAMAN ================= */
+  $('#pilih').addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b) setFitur(b.dataset.f);
+  });
+  $('#pilihBatal').addEventListener('click', function () { showScreen('app'); });
+  $('#gantiFitur').addEventListener('click', function () { openPilih(true); });
+  $('#pageSw').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (b) setPage(b.dataset.p);
+  });
+  fitur = lsGet('bk-fitur');
+  if (['kas', 'tabungan', 'keduanya'].indexOf(fitur) === -1) fitur = null;
+  initPage();
+  setLabels();
 
   /* ================= MULAI ================= */
   setAuthMode('login');
