@@ -5,7 +5,7 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1613">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F1">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=0.7,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Buku Kas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,6 +248,13 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 #tMonths table { min-width: 0; }
 #tMonths th, #tMonths td { padding: 7px 6px; white-space: nowrap; }
 #tMonths th:first-child, #tMonths td:first-child { padding-left: 0; }
+.hr { display: contents; }
+.hr .step { order: 2; }
+.hr .periode { order: 3; flex: 1 0 100%; }
+.pset { display: flex; flex-direction: column; gap: 16px; }
+.auth-card .email { overflow-wrap: anywhere; font-weight: 600; color: var(--ink); }
+.sample { margin: 0; padding: 10px 12px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; }
+.sample b { font-family: var(--f-mono); }
 @keyframes bump { 0% { transform: translateY(-4px); opacity: 0.4; } 100% { transform: none; opacity: 1; } }
 .bump { animation: bump 0.45s ease-out; }
 @media (prefers-reduced-motion: reduce) { .bump { animation: none; } .fill { transition: none; } }
@@ -293,7 +300,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   <section class="auth" id="pilih" hidden>
     <header><h1>Pilih fitur</h1></header>
     <div class="auth-card">
-      <p class="auth-sub">Mau pakai yang mana? Kamu bisa menggantinya kapan saja lewat tombol "Ganti fitur".</p>
+      <p class="auth-sub">Mau pakai yang mana? Kamu bisa menggantinya kapan saja lewat Pengaturan (ikon roda gigi).</p>
       <button type="button" class="btn opt" data-f="kas" aria-pressed="false">Kas<small>Catat pemasukan dan pengeluaran</small></button>
       <button type="button" class="btn opt" data-f="tabungan" aria-pressed="false">Tabungan<small>Catat setor dan ambil tabungan</small></button>
       <button type="button" class="btn opt" data-f="keduanya" aria-pressed="false">Kas dan Tabungan<small>Dua-duanya, dengan setor dari kas ke tabungan</small></button>
@@ -301,17 +308,49 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     </div>
   </section>
 
+  <!-- ===== Pengaturan ===== -->
+  <section class="pset" id="pengaturan" hidden>
+    <header>
+      <h1>Pengaturan</h1>
+      <button type="button" class="link" id="setBack">&larr; Kembali</button>
+    </header>
+
+    <div class="auth-card">
+      <h2 class="chart-title">Akun</h2>
+      <p class="auth-sub">Masuk sebagai <span class="email" id="userEmail"></span></p>
+      <button class="btn ghost" type="button" id="logout">Keluar</button>
+    </div>
+
+    <div class="auth-card">
+      <h2 class="chart-title">Fitur</h2>
+      <p class="auth-sub">Pilih yang kamu pakai. Data tidak hilang saat kamu mengganti pilihan.</p>
+      <button type="button" class="btn opt" data-f="kas" aria-pressed="false">Kas<small>Catat pemasukan dan pengeluaran</small></button>
+      <button type="button" class="btn opt" data-f="tabungan" aria-pressed="false">Tabungan<small>Beberapa tabungan dengan target masing-masing</small></button>
+      <button type="button" class="btn opt" data-f="keduanya" aria-pressed="false">Kas dan Tabungan<small>Dua-duanya, dengan setor dari kas ke tabungan</small></button>
+    </div>
+
+    <div class="auth-card">
+      <h2 class="chart-title">Tampilan</h2>
+      <p class="auth-sub">Ukuran teks (berlaku di perangkat ini)</p>
+      <div class="views" id="ukuran">
+        <button type="button" data-u="75" aria-pressed="false">Mini</button>
+        <button type="button" data-u="88" aria-pressed="false">Kecil</button>
+        <button type="button" data-u="100" aria-pressed="true">Normal</button>
+        <button type="button" data-u="118" aria-pressed="false">Besar</button>
+      </div>
+      <p class="sample">Contoh: saldo kamu <b>Rp 1.250.000</b></p>
+    </div>
+  </section>
+
   <!-- ===== Aplikasi utama (tampil setelah login) ===== -->
   <div id="app" hidden style="display:contents">
   <header>
     <h1 id="appTitle">Buku Kas</h1>
-    <p class="periode" id="periode"></p>
+    <div class="hr">
+      <p class="periode" id="periode"></p>
+      <button type="button" class="step" id="gear" aria-label="Pengaturan"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
   </header>
-  <div class="userbar">
-    <span class="email" id="userEmail"></span>
-    <button type="button" class="link" id="gantiFitur">Ganti fitur</button>
-    <button type="button" class="link" id="logout">Keluar</button>
-  </div>
 
   <div class="views" id="pageSw" style="grid-template-columns:1fr 1fr" hidden>
     <button type="button" data-p="kas" aria-pressed="true">Kas</button>
@@ -1682,7 +1721,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       ensureDefaultGoal();
       if (!snap.metadata.fromCache) {
         clearTimeout(timer);
-        status('Tersinkron ke akun ' + (user.email || '') + '. Hanya kamu yang bisa melihatnya.');
+        status('Tersinkron. Hanya kamu yang bisa melihatnya.');
       } else if (snap.metadata.hasPendingWrites) {
         status('Menunggu koneksi untuk menyimpan perubahan…');
       }
@@ -1718,6 +1757,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   function showScreen(which) {
     $('#splash').hidden = which !== 'splash';
     $('#pilih').hidden = which !== 'pilih';
+    $('#pengaturan').hidden = which !== 'pengaturan';
     $('#auth').hidden = which !== 'auth';
     $('#app').hidden = which !== 'app';
   }
@@ -1936,7 +1976,34 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (b) setFitur(b.dataset.f);
   });
   $('#pilihBatal').addEventListener('click', function () { showScreen('app'); });
-  $('#gantiFitur').addEventListener('click', function () { openPilih(true); });
+  /* ---- Pengaturan ---- */
+  var UKURAN = ['75', '88', '100', '118'];
+  function applyUkuran() {
+    var u = lsGet('bk-ukuran');
+    if (UKURAN.indexOf(u) === -1) u = '100';
+    document.documentElement.style.fontSize = u + '%';
+    return u;
+  }
+  function openPengaturan() {
+    var u = applyUkuran();
+    Array.prototype.forEach.call(document.querySelectorAll('#pengaturan .opt'), function (b) {
+      b.setAttribute('aria-pressed', b.dataset.f === fitur ? 'true' : 'false');
+    });
+    Array.prototype.forEach.call($('#ukuran').children, function (b) {
+      b.setAttribute('aria-pressed', b.dataset.u === u ? 'true' : 'false');
+    });
+    showScreen('pengaturan');
+    window.scrollTo(0, 0);
+  }
+  $('#gear').addEventListener('click', openPengaturan);
+  $('#setBack').addEventListener('click', function () { showScreen('app'); render(); });
+  $('#pengaturan').addEventListener('click', function (e) {
+    var o = e.target.closest('.opt');
+    if (o) { setFitur(o.dataset.f); openPengaturan(); return; }
+    var u = e.target.closest('[data-u]');
+    if (u) { lsSet('bk-ukuran', u.dataset.u); openPengaturan(); }
+  });
+  applyUkuran();
   $('#pageSw').addEventListener('click', function (e) {
     var b = e.target.closest('button');
     if (b) setPage(b.dataset.p);
