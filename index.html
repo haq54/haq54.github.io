@@ -4,8 +4,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1613">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F1">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.7
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Buku Kas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -229,6 +229,25 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 .btn.opt { height: auto; padding: 12px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
 .btn.opt small { font-weight: 400; opacity: 0.85; font-size: 0.82rem; }
 .btn.opt[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.goals { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .goals { grid-template-columns: 1fr 1fr; } }
+.goal { width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; color: var(--ink); }
+.goal:hover, .goal:focus-visible { border-color: var(--accent); outline: none; }
+.goal-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.goal-name { font: 600 1rem/1.3 var(--f-display); overflow-wrap: anywhere; min-width: 0; }
+.goal-saldo { font: 600 1rem/1.3 var(--f-mono); font-variant-numeric: tabular-nums; flex: none; }
+.fill.gfill { background: var(--in); }
+.tbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; }
+.tbar .link { font-size: 0.9rem; font-weight: 600; }
+.tbar .grp { display: flex; gap: 14px; }
+.gfields { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .gfields { grid-template-columns: minmax(0, 1fr) 14rem; } }
+.brow { display: flex; gap: 10px; }
+.brow .btn { flex: 1; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+#tMonths table { min-width: 0; }
+#tMonths th, #tMonths td { padding: 7px 6px; white-space: nowrap; }
+#tMonths th:first-child, #tMonths td:first-child { padding-left: 0; }
 @keyframes bump { 0% { transform: translateY(-4px); opacity: 0.4; } 100% { transform: none; opacity: 1; } }
 .bump { animation: bump 0.45s ease-out; }
 @media (prefers-reduced-motion: reduce) { .bump { animation: none; } .fill { transition: none; } }
@@ -299,6 +318,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <button type="button" data-p="tabungan" aria-pressed="false">Tabungan</button>
   </div>
 
+  <div id="kasPage" style="display:contents">
   <nav class="period" aria-label="Periode">
     <div class="views" id="views">
       <button type="button" data-v="harian" aria-pressed="true">Harian</button>
@@ -436,6 +456,119 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <div id="rlist" role="list"></div>
   </section>
 
+  </div>
+
+  <!-- ===== Halaman Tabungan (beberapa target) ===== -->
+  <div id="tabPage" hidden style="display:contents">
+    <form class="entry" id="goalForm" autocomplete="off" novalidate hidden>
+      <h2 class="chart-title" id="gTitle">Tambah tabungan</h2>
+      <div class="gfields">
+        <div class="field">
+          <label class="label" for="gNama">Nama tabungan</label>
+          <input type="text" id="gNama" maxlength="40" placeholder="Contoh: Motor, Dana darurat">
+        </div>
+        <div class="field">
+          <label class="label" for="gTarget">Target (boleh kosong)</label>
+          <div class="money"><i>Rp</i><input type="text" id="gTarget" inputmode="numeric" placeholder="0"></div>
+        </div>
+      </div>
+      <p class="err" id="gErr" role="alert"></p>
+      <div class="brow">
+        <button class="btn" type="submit" id="gSave">Simpan</button>
+        <button class="btn ghost" type="button" id="gCancel">Batal</button>
+      </div>
+    </form>
+
+    <div id="tabList" style="display:contents">
+      <section class="summary" aria-label="Total tabungan">
+        <div>
+          <div class="label">Total semua tabungan</div>
+          <span class="saldo-val" id="tTotal">Rp&nbsp;0</span>
+          <p class="awal" id="tCount"></p>
+        </div>
+      </section>
+      <div class="goals" id="goals"></div>
+      <section class="ledger" id="goalEmpty" hidden>
+        <div class="empty"><p>Belum ada tabungan. Buat satu untuk mulai mencatat setor dan ambil, misalnya "Motor" atau "Dana darurat".</p></div>
+      </section>
+      <button class="btn" type="button" id="tAdd" disabled>Tambah tabungan</button>
+    </div>
+
+    <div id="tabDetail" hidden style="display:contents">
+      <div class="tbar">
+        <button type="button" class="link" id="tBack">&larr; Semua tabungan</button>
+        <span class="grp">
+          <button type="button" class="link" id="tEdit">Ubah</button>
+          <button type="button" class="link" id="tDel">Hapus tabungan</button>
+        </span>
+      </div>
+      <section class="summary" aria-live="polite" aria-label="Ringkasan tabungan">
+        <div>
+          <div class="label" id="dName">Tabungan</div>
+          <span class="saldo-val" id="dSaldo">Rp&nbsp;0</span>
+          <p class="awal" id="dTarget"></p>
+        </div>
+        <div class="meter">
+          <div class="track"><div class="fill gfill" id="dFill"></div></div>
+          <p class="meter-note" id="dNote"></p>
+        </div>
+      </section>
+
+      <form class="entry" id="tForm" autocomplete="off" novalidate>
+        <div class="seg" role="radiogroup" aria-label="Jenis catatan">
+          <label><input type="radio" name="ttipe" value="masuk" checked><span>Setor</span></label>
+          <label><input type="radio" name="ttipe" value="keluar"><span>Ambil</span></label>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label class="label" for="ttgl">Tanggal</label>
+            <input type="date" id="ttgl">
+          </div>
+          <div class="field f-ket">
+            <label class="label" for="tket">Keterangan</label>
+            <input type="text" id="tket" maxlength="120" placeholder="Contoh: sisa uang saku, beli helm">
+          </div>
+          <div class="field">
+            <label class="label" for="tjumlah">Jumlah</label>
+            <div class="money"><i>Rp</i><input type="text" id="tjumlah" inputmode="numeric" placeholder="0"></div>
+          </div>
+          <button class="btn" type="submit" id="tAddRec" disabled>Tambah</button>
+        </div>
+        <p class="err" id="tErr" role="alert"></p>
+      </form>
+
+      <section class="chart" aria-label="Saldo per bulan">
+        <div class="chart-head">
+          <div>
+            <h2 class="chart-title">Saldo per bulan</h2>
+            <p class="chart-sub">Total setor, ambil, dan saldo akhir tiap bulan</p>
+          </div>
+        </div>
+        <div class="tbl-wrap" id="tMonths"></div>
+        <p class="day-empty" id="tMonthsEmpty" hidden>Belum ada catatan. Tabel muncul setelah kamu menyetor.</p>
+      </section>
+
+      <section class="ledger" aria-label="Riwayat setor dan ambil">
+        <div class="tools">
+          <div class="tabs" id="tTabs">
+            <button type="button" data-f="semua" aria-pressed="true">Semua</button>
+            <button type="button" data-f="masuk" aria-pressed="false">Setor</button>
+            <button type="button" data-f="keluar" aria-pressed="false">Ambil</button>
+          </div>
+        </div>
+        <div class="head label" aria-hidden="true">
+          <span style="grid-area:tgl">Tanggal</span>
+          <span style="grid-area:ket">Keterangan</span>
+          <span class="num" style="grid-area:mas">Setor</span>
+          <span class="num" style="grid-area:kel">Ambil</span>
+          <span class="num" style="grid-area:sal">Saldo</span>
+          <span style="grid-area:del"></span>
+        </div>
+        <div id="tList" role="list"></div>
+      </section>
+    </div>
+  </div>
+
   <p class="status" id="status">Menghubungkan penyimpanan…</p>
   </div>
 </main>
@@ -497,6 +630,13 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   var allItems = [];     /* semua catatan mentah (kas + tabungan) dari Firestore */
   var fitur = null;      /* 'kas' | 'tabungan' | 'keduanya' (pilihan pengguna, disimpan di perangkat) */
   var page = 'kas';      /* halaman yang sedang dibuka: 'kas' | 'tabungan' */
+  var goals = [];        /* target tabungan; disimpan di koleksi yang sama dengan tipe 'target' */
+  var tabSel = null;     /* id tabungan yang sedang dibuka; null = daftar tabungan */
+  var tfilter = 'semua';
+  var goalEditId = null;
+  var serverSynced = false;
+  var defaultTried = false;
+  var gDelArmed = false, gDelTimer = null;
   var LABELS = {
     kas: { title: 'Buku Kas', m: 'Pemasukan', k: 'Pengeluaran', mS: 'Masuk', kS: 'Keluar',
       saldo: 'Saldo akhir', saldoNow: 'Saldo akhir (berjalan)', flow: 'Pemasukan & pengeluaran',
@@ -642,10 +782,6 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   /* Kaca mata per halaman: halaman tabungan melihat setor sebagai 'masuk' dan ambil sebagai 'keluar',
      sehingga seluruh perhitungan, grafik, tabel, dan riwayat yang sudah ada bekerja tanpa diubah. */
   function deriveItems() {
-    if (page === 'tabungan') {
-      return allItems.filter(function (x) { return x.tipe === 'setor' || x.tipe === 'ambil'; })
-        .map(function (x) { return Object.assign({}, x, { tipe: x.tipe === 'setor' ? 'masuk' : 'keluar', asli: x.tipe }); });
-    }
     return allItems.filter(function (x) {
       return x.tipe === 'masuk' || x.tipe === 'keluar' || (x.tipe === 'setor' && x.sumber === 'kas');
     });
@@ -656,10 +792,11 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   function tabunganOK(list) {
     var pot = list.filter(function (x) { return x.tipe === 'setor' || x.tipe === 'ambil'; })
       .sort(function (a, b) { return a.tgl.localeCompare(b.tgl) || ((a.ts || 0) - (b.ts || 0)); });
-    var run = 0;
+    var run = {};
     for (var i = 0; i < pot.length; i++) {
-      run += pot[i].tipe === 'setor' ? pot[i].jumlah : -pot[i].jumlah;
-      if (run < 0) return false;
+      var g = gid(pot[i]);
+      run[g] = (run[g] || 0) + (pot[i].tipe === 'setor' ? pot[i].jumlah : -pot[i].jumlah);
+      if (run[g] < 0) return false;
     }
     return true;
   }
@@ -674,9 +811,11 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   }
 
   function setLabels() {
-    LB = LABELS[page];
+    LB = LABELS.kas;
     SER.saldo.name = LB.saldo; SER.masuk.name = LB.m; SER.keluar.name = LB.k;
-    $('#appTitle').textContent = LB.title;
+    $('#appTitle').textContent = page === 'tabungan' ? 'Tabungan' : 'Buku Kas';
+    $('#kasPage').hidden = page === 'tabungan';
+    $('#tabPage').hidden = page !== 'tabungan';
     $('#lblMasuk').textContent = LB.m;  $('#lblKeluar').textContent = LB.k;
     $('#rdMasuk').textContent = LB.m;   $('#rdKeluar').textContent = LB.k;
     $('#lgMasuk').textContent = LB.m;   $('#lgKeluar').textContent = LB.k;
@@ -740,6 +879,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 
   /* ================= RENDER ================= */
   function render() {
+    if (page === 'tabungan') { renderTab(); return; }
     var r = getRange();
     var today = todayStr();
     var isDaily = view === 'harian';
@@ -1251,7 +1391,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var k = el('div', 'ket');
     k.append(el('span', null, x.ket));
     if (x.contoh) k.append(el('span', 'tag', 'contoh'));
-    if (x.tipe === 'setor') k.append(el('span', 'tag', 'ke tabungan'));
+    if (x.tipe === 'setor') k.append(el('span', 'tag', 'ke ' + goalName(x)));
     if (x.asli === 'setor' && x.sumber === 'kas') k.append(el('span', 'tag', 'dari kas'));
     var isIn = x.tipe === 'masuk';
     var m = el('div', 'num masuk' + (isIn ? '' : ' nil'), isIn ? '+' + nf.format(x.jumlah) : '–');
@@ -1286,12 +1426,173 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     clearTimeout(armTimer);
     var rest = allItems.filter(function (x) { return x.id !== id; });
     if (!tabunganOK(rest)) {
-      showErr('Catatan ini tidak bisa dihapus: saldo tabungan akan menjadi minus karena ada pengambilan sesudahnya.');
+      showErrP('Catatan ini tidak bisa dihapus: saldo tabungan akan menjadi minus karena ada pengambilan sesudahnya.');
       render();
       return;
     }
     render();
     backend.remove(id).catch(function () { showErr('Catatan belum terhapus. Coba lagi.'); });
+  }
+
+  /* ================= TABUNGAN (beberapa target) ================= */
+  function gid(x) { return x.goalId || 'umum'; }
+  function goalById(id) {
+    for (var i = 0; i < goals.length; i++) if (goals[i].id === id) return goals[i];
+    return null;
+  }
+  function goalName(x) { var g = goalById(gid(x)); return g ? g.nama : 'tabungan'; }
+  function cleanGoals(raw) {
+    return raw.filter(function (d) {
+      return d && d.tipe === 'target' && typeof d.nama === 'string' && d.nama.trim();
+    }).map(function (d) {
+      var tg = typeof d.target === 'number' && isFinite(d.target) && d.target > 0 ? d.target : 0;
+      return { id: d.id, nama: d.nama.trim(), target: tg, ts: d.ts || 0 };
+    }).sort(function (a, b) { return (a.ts - b.ts) || a.nama.localeCompare(b.nama); });
+  }
+  function recsOf(id) {
+    return allItems.filter(function (x) { return (x.tipe === 'setor' || x.tipe === 'ambil') && gid(x) === id; })
+      .sort(function (a, b) { return a.tgl.localeCompare(b.tgl) || ((a.ts || 0) - (b.ts || 0)); });
+  }
+  function saldoOf(id) {
+    var s = 0;
+    recsOf(id).forEach(function (x) { s += x.tipe === 'setor' ? x.jumlah : -x.jumlah; });
+    return s;
+  }
+  function showTErr(text, info) {
+    var n = $('#tErr');
+    n.textContent = text || '';
+    n.classList.toggle('info', !!info);
+  }
+  function showErrP(text, info) { if (page === 'tabungan') showTErr(text, info); else showErr(text, info); }
+
+  /* Data tabungan dari versi lama (tanpa goalId) dipindahkan sekali ke tabungan bernama "Tabungan". */
+  function ensureDefaultGoal() {
+    if (defaultTried || !serverSynced || !backend || goals.length) return;
+    var legacy = allItems.filter(function (x) { return (x.tipe === 'setor' || x.tipe === 'ambil') && !x.goalId; });
+    if (!legacy.length) return;
+    defaultTried = true;
+    backend.set('umum', { tipe: 'target', nama: 'Tabungan', target: 0, ts: 1 }).then(function () {
+      legacy.forEach(function (x) { backend.update(x.id, { goalId: 'umum' }).catch(function () {}); });
+    }).catch(function () { defaultTried = false; });
+  }
+
+  function pctText(s, tg) {
+    return s >= tg ? 'Target tercapai (' + rp(tg) + ')' : Math.round(s / tg * 100) + '% dari target ' + rp(tg);
+  }
+
+  function renderTab() {
+    var sel = tabSel ? goalById(tabSel) : null;
+    if (tabSel && !sel && ready) tabSel = null;
+    $('#tabList').hidden = !!sel;
+    $('#tabDetail').hidden = !sel;
+    $('#tAddRec').disabled = !ready;
+    $('#tAdd').disabled = !ready;
+    if (sel) renderDetail(sel); else renderGoals();
+  }
+
+  function renderGoals() {
+    var box = $('#goals');
+    box.textContent = '';
+    var total = 0;
+    goals.forEach(function (g) {
+      var s = saldoOf(g.id);
+      total += s;
+      var b = el('button', 'goal');
+      b.type = 'button';
+      b.dataset.id = g.id;
+      var top = el('div', 'goal-top');
+      top.append(el('span', 'goal-name', g.nama), el('span', 'goal-saldo', rp(s)));
+      var track = el('div', 'track'), fill = el('div', 'fill gfill');
+      fill.style.width = (g.target > 0 ? Math.max(0, Math.min(100, Math.round(s / g.target * 100))) : 0) + '%';
+      track.append(fill);
+      b.append(top, track, el('p', 'meter-note', g.target > 0 ? pctText(s, g.target) : 'Belum ada target'));
+      box.append(b);
+    });
+    setText($('#tTotal'), rp(total));
+    $('#tCount').textContent = goals.length + ' tabungan';
+    $('#goalEmpty').hidden = goals.length > 0 || !ready;
+  }
+
+  function renderDetail(g) {
+    var s = saldoOf(g.id), tg = g.target;
+    $('#dName').textContent = g.nama;
+    var sEl = $('#dSaldo');
+    setText(sEl, rp(s));
+    sEl.classList.toggle('neg', s < 0);
+    $('#dTarget').textContent = tg > 0 ? 'Target ' + rp(tg) : 'Belum ada target';
+    var pct = tg > 0 ? Math.max(0, Math.min(100, Math.round(s / tg * 100))) : 0;
+    $('#dFill').style.width = pct + '%';
+    $('#dNote').textContent = tg > 0
+      ? (s >= tg ? 'Target tercapai.' : pct + '% tercapai, sisa ' + rp(tg - s) + ' lagi')
+      : 'Atur target lewat tombol Ubah.';
+
+    var recs = recsOf(g.id);
+
+    /* saldo per bulan */
+    var months = {}, order = [], run = 0;
+    recs.forEach(function (x) {
+      var k = x.tgl.slice(0, 7);
+      if (!months[k]) { months[k] = { k: k, inn: 0, out: 0, end: 0 }; order.push(k); }
+      if (x.tipe === 'setor') { months[k].inn += x.jumlah; run += x.jumlah; }
+      else { months[k].out += x.jumlah; run -= x.jumlah; }
+      months[k].end = run;
+    });
+    var wrap = $('#tMonths');
+    wrap.textContent = '';
+    $('#tMonthsEmpty').hidden = order.length > 0;
+    wrap.hidden = order.length === 0;
+    if (order.length) {
+      var tb = el('table'), th = el('thead'), hr = el('tr'), body = el('tbody');
+      ['Bulan', 'Setor', 'Ambil', 'Saldo akhir'].forEach(function (h) { hr.append(el('th', null, h)); });
+      th.append(hr);
+      order.slice().reverse().forEach(function (k) {
+        var m = months[k], p = k.split('-').map(Number), tr = el('tr');
+        tr.append(el('td', null, BLN[p[1] - 1] + ' ' + p[0]),
+          el('td', null, m.inn ? '+' + nf.format(m.inn) : '–'),
+          el('td', null, m.out ? '−' + nf.format(m.out) : '–'),
+          el('td', null, num(m.end)));
+        body.append(tr);
+      });
+      tb.append(th, body);
+      wrap.append(tb);
+    }
+
+    /* riwayat */
+    var rr = 0, rows = [];
+    recs.forEach(function (x) {
+      rr += x.tipe === 'setor' ? x.jumlah : -x.jumlah;
+      rows.push({ x: Object.assign({}, x, { tipe: x.tipe === 'setor' ? 'masuk' : 'keluar', asli: x.tipe }), sal: rr });
+    });
+    Array.prototype.forEach.call($('#tTabs').children, function (c) {
+      c.setAttribute('aria-pressed', c.dataset.f === tfilter ? 'true' : 'false');
+    });
+    var shown = rows.filter(function (r) { return tfilter === 'semua' || r.x.tipe === tfilter; }).reverse();
+    var list = $('#tList');
+    list.textContent = '';
+    if (!shown.length) {
+      var em = el('div', 'empty');
+      em.append(el('p', null, rows.length ? 'Tidak ada catatan untuk filter ini.' : 'Belum ada setor atau ambil. Tambahkan dari form di atas.'));
+      list.append(em);
+    } else {
+      shown.forEach(function (r) { list.append(rowEl(r.x, r.sal)); });
+    }
+  }
+
+  function openGoalForm(id) {
+    goalEditId = id || null;
+    var g = id ? goalById(id) : null;
+    $('#gTitle').textContent = g ? 'Ubah tabungan' : 'Tambah tabungan';
+    $('#gNama').value = g ? g.nama : '';
+    $('#gTarget').value = g && g.target > 0 ? nf.format(g.target) : '';
+    $('#gErr').textContent = '';
+    $('#goalForm').hidden = false;
+    $('#gNama').focus();
+  }
+  function closeGoalForm() { goalEditId = null; $('#goalForm').hidden = true; }
+  function resetDel() {
+    gDelArmed = false;
+    clearTimeout(gDelTimer);
+    $('#tDel').textContent = 'Hapus tabungan';
   }
 
   /* ================= DATA CONTOH & IMPOR ================= */
@@ -1367,12 +1668,18 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var timer = setTimeout(function () { status('Data mungkin belum yang terbaru.', true); }, 10000);
     backend = {
       add: function (data) { return col.add(data); },
-      remove: function (id) { return col.doc(id).delete(); }
+      remove: function (id) { return col.doc(id).delete(); },
+      set: function (id, data) { return col.doc(id).set(data); },
+      update: function (id, data) { return col.doc(id).update(data); }
     };
     status('Menyinkronkan data…');
     unsub = col.onSnapshot(function (snap) {
-      allItems = clean(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+      var raw = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      allItems = clean(raw);
+      goals = cleanGoals(raw);
+      if (!snap.metadata.fromCache) serverSynced = true;
       rebuild();
+      ensureDefaultGoal();
       if (!snap.metadata.fromCache) {
         clearTimeout(timer);
         status('Tersinkron ke akun ' + (user.email || '') + '. Hanya kamu yang bisa melihatnya.');
@@ -1396,6 +1703,10 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
     items = [];
     allItems = [];
+    goals = [];
+    tabSel = null;
+    serverSynced = false;
+    defaultTried = false;
     backend = null;
     ready = false;
     currentUser = null;
@@ -1538,15 +1849,6 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     showErr('');
     /* Tutup keyboard/form langsung; Firestore menyimpan lokal dulu lalu sinkron saat online. */
     var rec = { tipe: tipe, jumlah: jumlah, ket: ket, tgl: tgl, ts: Date.now() };
-    if (page === 'tabungan') {
-      rec.tipe = tipe === 'masuk' ? 'setor' : 'ambil';
-      if (rec.tipe === 'setor') rec.sumber = fitur === 'keduanya' ? 'kas' : 'luar';
-      else if (!tabunganOK(allItems.concat([rec]))) {
-        showErr('Saldo tabungan tidak cukup pada tanggal itu.');
-        $('#jumlah').focus();
-        return;
-      }
-    }
     var p = backend.add(rec);
     $('#ket').value = '';
     $('#jumlah').value = '';
@@ -1608,7 +1910,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   });
   var resizeQueued = false;
   window.addEventListener('resize', function () {
-    if (resizeQueued || $('#app').hidden) return;
+    if (resizeQueued || $('#app').hidden || page === 'tabungan') return;
     resizeQueued = true;
     requestAnimationFrame(function () { resizeQueued = false; drawDayChart(); drawChart(); });
   });
@@ -1619,6 +1921,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (t === lastToday) return;
     var wasCurrent = inRangeDate(getRange(), lastToday);
     if ($('#tgl').value === lastToday) $('#tgl').value = t;
+    if ($('#ttgl').value === lastToday) $('#ttgl').value = t;
     lastToday = t;
     if (wasCurrent) { anchor = t; syncDate(); }
     $('#periode').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -1642,6 +1945,101 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   if (['kas', 'tabungan', 'keduanya'].indexOf(fitur) === -1) fitur = null;
   initPage();
   setLabels();
+
+  /* ---- Tabungan: handler ---- */
+  $('#ttgl').value = todayStr();
+  [$('#tjumlah'), $('#gTarget')].forEach(function (inp) {
+    inp.addEventListener('input', function (e) {
+      var d = digits(e.target.value).slice(0, 13);
+      e.target.value = d ? nf.format(Number(d)) : '';
+    });
+  });
+  $('#tAdd').addEventListener('click', function () { openGoalForm(null); });
+  $('#gCancel').addEventListener('click', closeGoalForm);
+  $('#goalForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!ready || !backend) return;
+    var nama = $('#gNama').value.trim();
+    var target = parseInt(digits($('#gTarget').value) || '0', 10);
+    if (!nama) { $('#gErr').textContent = 'Isi nama tabungan dulu.'; $('#gNama').focus(); return; }
+    var p = goalEditId
+      ? backend.update(goalEditId, { nama: nama, target: target })
+      : backend.add({ tipe: 'target', nama: nama, target: target, ts: Date.now() });
+    closeGoalForm();
+    p.catch(function () { showTErr('Belum tersimpan ke server. Periksa koneksi atau aturan Firestore.'); });
+  });
+  $('#goals').addEventListener('click', function (e) {
+    var b = e.target.closest('.goal');
+    if (!b) return;
+    tabSel = b.dataset.id;
+    tfilter = 'semua';
+    armed = null;
+    closeGoalForm();
+    showTErr('');
+    render();
+    window.scrollTo(0, 0);
+  });
+  $('#tBack').addEventListener('click', function () {
+    tabSel = null;
+    armed = null;
+    resetDel();
+    closeGoalForm();
+    showTErr('');
+    render();
+  });
+  $('#tEdit').addEventListener('click', function () { if (tabSel) openGoalForm(tabSel); });
+  $('#tDel').addEventListener('click', function () {
+    var g = tabSel ? goalById(tabSel) : null;
+    if (!g || !backend) return;
+    var s = saldoOf(g.id);
+    if (s !== 0) {
+      resetDel();
+      showTErr('Tabungan ini masih berisi ' + rp(s) + '. Ambil dulu sampai saldonya nol sebelum menghapus.');
+      return;
+    }
+    if (!gDelArmed) {
+      gDelArmed = true;
+      this.textContent = 'Yakin hapus?';
+      clearTimeout(gDelTimer);
+      gDelTimer = setTimeout(resetDel, 3500);
+      return;
+    }
+    resetDel();
+    var id = g.id;
+    tabSel = null;
+    backend.remove(id).catch(function () { showTErr('Tabungan belum terhapus. Coba lagi.'); });
+    render();
+  });
+  $('#tTabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b || !b.dataset.f) return;
+    tfilter = b.dataset.f;
+    render();
+  });
+  $('#tForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!ready || !backend || !tabSel) return;
+    var f = $('#tForm');
+    var tipe = f.elements.ttipe.value;
+    var jumlah = parseInt(digits($('#tjumlah').value) || '0', 10);
+    var ket = $('#tket').value.trim();
+    var tgl = $('#ttgl').value || todayStr();
+    if (!ket) { showTErr('Isi keterangan dulu.'); $('#tket').focus(); return; }
+    if (!(jumlah > 0)) { showTErr('Isi jumlah lebih dari nol.'); $('#tjumlah').focus(); return; }
+    showTErr('');
+    var rec = { tipe: tipe === 'masuk' ? 'setor' : 'ambil', jumlah: jumlah, ket: ket, tgl: tgl, ts: Date.now(), goalId: tabSel };
+    if (rec.tipe === 'setor') rec.sumber = fitur === 'keduanya' ? 'kas' : 'luar';
+    else if (!tabunganOK(allItems.concat([rec]))) {
+      showTErr('Saldo tabungan ini tidak cukup pada tanggal itu.');
+      $('#tjumlah').focus();
+      return;
+    }
+    var p = backend.add(rec);
+    $('#tket').value = '';
+    $('#tjumlah').value = '';
+    $('#tket').focus();
+    p.catch(function () { showTErr('Catatan belum tersimpan ke server. Periksa koneksi atau aturan Firestore.'); });
+  });
 
   /* ================= MULAI ================= */
   setAuthMode('login');
