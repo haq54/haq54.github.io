@@ -978,8 +978,6 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       b.setAttribute('aria-pressed', b.dataset.p === page ? 'true' : 'false');
     });
     $('#pageSw').hidden = fitur !== 'keduanya';
-    var MODE_NAMA = { kas: 'Kas', tabungan: 'Tabungan', keduanya: 'Kas + Tabungan' };
-    $('#modeBtn').textContent = 'Mode: ' + (MODE_NAMA[fitur] || '-') + ' \u25BE';
     Array.prototype.forEach.call($('#modeMenu').children, function (b) {
       b.setAttribute('aria-checked', b.dataset.m === fitur ? 'true' : 'false');
     });
