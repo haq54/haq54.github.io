@@ -250,7 +250,12 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 #tMonths th:first-child, #tMonths td:first-child { padding-left: 0; }
 .hr { display: contents; }
 .hr .hbtns { order: 2; display: flex; gap: 8px; }
-.hr .periode { order: 3; flex: 1 0 100%; }
+.hr .subrow { order: 3; flex: 1 0 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; }
+.menu { position: absolute; right: 0; top: 100%; z-index: 20; min-width: 12.5rem; margin-top: 6px; padding: 6px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22); }
+.menu button { height: 42px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; border: 0; border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; }
+.menu button:hover { background: var(--field); }
+.menu button[aria-checked="true"] { font-weight: 700; }
+.menu button[aria-checked="true"]::after { content: "\2713"; color: var(--accent); }
 .pset { display: flex; flex-direction: column; gap: 16px; }
 .auth-card .email { overflow-wrap: anywhere; font-weight: 600; color: var(--ink); }
 .sample { margin: 0; padding: 10px 12px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; }
@@ -317,7 +322,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   <section class="auth" id="pilih" hidden>
     <header><h1>Pilih fitur</h1></header>
     <div class="auth-card">
-      <p class="auth-sub">Mau pakai yang mana? Kamu bisa menggantinya kapan saja lewat tombol di bagian atas beranda.</p>
+      <p class="auth-sub">Mau pakai yang mana? Kamu bisa menggantinya kapan saja lewat tombol Mode di bagian atas beranda.</p>
       <button type="button" class="btn opt" data-f="kas" aria-pressed="false">Kas<small>Catat pemasukan dan pengeluaran</small></button>
       <button type="button" class="btn opt" data-f="tabungan" aria-pressed="false">Tabungan<small>Catat setor dan ambil tabungan</small></button>
       <button type="button" class="btn opt" data-f="keduanya" aria-pressed="false">Kas dan Tabungan<small>Dua-duanya, dengan setor dari kas ke tabungan</small></button>
@@ -413,16 +418,18 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   <header>
     <h1 id="appTitle">Buku Kas</h1>
     <div class="hr">
-      <p class="periode" id="periode"></p>
       <span class="hbtns"><button type="button" class="step" id="cariBtn" aria-label="Cari catatan"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button><button type="button" class="step" id="gear" aria-label="Pengaturan"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></span>
+      <div class="subrow">
+        <p class="periode" id="periode"></p>
+        <button type="button" class="link" id="modeBtn" aria-haspopup="menu" aria-expanded="false">Mode</button>
+        <div class="menu" id="modeMenu" role="menu" aria-label="Mode" hidden>
+          <button type="button" role="menuitemradio" data-m="kas" aria-checked="false">Kas</button>
+          <button type="button" role="menuitemradio" data-m="tabungan" aria-checked="false">Tabungan</button>
+          <button type="button" role="menuitemradio" data-m="keduanya" aria-checked="false">Kas + Tabungan</button>
+        </div>
+      </div>
     </div>
   </header>
-
-  <div class="views" id="modeSw" style="grid-template-columns:1fr 1fr 1fr" role="group" aria-label="Fitur yang dipakai">
-    <button type="button" data-m="kas" aria-pressed="false">Kas</button>
-    <button type="button" data-m="tabungan" aria-pressed="false">Tabungan</button>
-    <button type="button" data-m="keduanya" aria-pressed="false">Keduanya</button>
-  </div>
 
   <div class="views" id="pageSw" style="grid-template-columns:1fr 1fr" hidden>
     <button type="button" data-p="kas" aria-pressed="true">Kas</button>
@@ -971,8 +978,10 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       b.setAttribute('aria-pressed', b.dataset.p === page ? 'true' : 'false');
     });
     $('#pageSw').hidden = fitur !== 'keduanya';
-    Array.prototype.forEach.call($('#modeSw').children, function (b) {
-      b.setAttribute('aria-pressed', b.dataset.m === fitur ? 'true' : 'false');
+    var MODE_NAMA = { kas: 'Kas', tabungan: 'Tabungan', keduanya: 'Kas + Tabungan' };
+    $('#modeBtn').textContent = 'Mode: ' + (MODE_NAMA[fitur] || '-') + ' \u25BE';
+    Array.prototype.forEach.call($('#modeMenu').children, function (b) {
+      b.setAttribute('aria-checked', b.dataset.m === fitur ? 'true' : 'false');
     });
   }
 
@@ -2396,10 +2405,22 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     if (u) { lsSet('bk-ukuran', u.dataset.u); openPengaturan(); }
   });
   applyUkuran();
-  $('#modeSw').addEventListener('click', function (e) {
-    var b = e.target.closest('button');
-    if (b && b.dataset.m !== fitur) setFitur(b.dataset.m);
+  function tutupMode() { $('#modeMenu').hidden = true; $('#modeBtn').setAttribute('aria-expanded', 'false'); }
+  $('#modeBtn').addEventListener('click', function () {
+    var buka = $('#modeMenu').hidden;
+    $('#modeMenu').hidden = !buka;
+    this.setAttribute('aria-expanded', buka ? 'true' : 'false');
   });
+  $('#modeMenu').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    tutupMode();
+    if (b.dataset.m !== fitur) setFitur(b.dataset.m);
+  });
+  document.addEventListener('click', function (e) {
+    if (!$('#modeMenu').hidden && !e.target.closest('.subrow')) tutupMode();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#modeMenu').hidden) tutupMode(); });
   $('#pageSw').addEventListener('click', function (e) {
     var b = e.target.closest('button');
     if (b) setPage(b.dataset.p);
