@@ -287,6 +287,17 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 .themes button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 .themes button[aria-pressed="true"] { border-color: var(--accent); }
 .themes .sw { display: block; width: 100%; height: 34px; border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.45); }
+.bgt { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n a" "b b" "t t"; gap: 6px 12px; padding: 12px; border-bottom: 1px solid var(--line); }
+.bgt .kn { grid-area: n; font-weight: 600; overflow-wrap: anywhere; }
+.bgt .ka { grid-area: a; font-family: var(--f-mono); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.bgt .kb { grid-area: b; }
+.bgt .bnote { grid-area: t; color: var(--muted); font-size: 0.85rem; }
+.bgt .bnote.over { color: var(--out); font-weight: 600; }
+.fill.bwarn { background: var(--s2); }
+.bitem { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.bitem label { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.bitem input { width: 9.5em; flex: none; height: 40px; padding: 0 10px; text-align: right; font-family: var(--f-mono); background: var(--field); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; }
+.bitem input::placeholder { color: var(--muted); opacity: 0.8; font-family: var(--f-body); }
 .smenu { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .smenu button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
 .smenu button:last-child { border-bottom: 0; }
@@ -374,8 +385,9 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <div class="smenu" id="setMenu">
       <button type="button" data-go="akun"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span><b>Akun</b><small id="akunSub">Email dan keluar</small></span></button>
       <button type="button" data-go="kategori"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1"/></svg><span><b>Kategori</b><small>Tambah, ubah, atau hapus kategori</small></span></button>
+      <button type="button" data-go="anggaran"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M3 7l12-3v3M16 14h2"/></svg><span><b>Anggaran</b><small>Batas pengeluaran per bulan</small></span></button>
       <button type="button" data-go="tampilan"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span><b>Tampilan</b><small>Tema warna dan ukuran teks</small></span></button>
-      <button type="button" data-go="data"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg><span><b>Data</b><small>Unduh CSV dan cadangan JSON</small></span></button>
+      <button type="button" data-go="data"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg><span><b>Data</b><small>Unduh dan pulihkan cadangan</small></span></button>
       <button type="button" data-go="tentang"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span><b>Tentang</b><small>Versi dan privasi</small></span></button>
     </div>
 
@@ -383,6 +395,13 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       <h2 class="chart-title">Akun</h2>
       <p class="auth-sub">Masuk sebagai <span class="email" id="userEmail"></span></p>
       <button class="btn ghost" type="button" id="logout">Keluar</button>
+    </div>
+
+    <div class="auth-card spanel" data-sub="anggaran" hidden>
+      <h2 class="chart-title">Anggaran bulanan</h2>
+      <p class="auth-sub">Isi batas pengeluaran per bulan untuk tiap kategori. Kosongkan kalau tidak ingin dibatasi. Progresnya tampil di beranda.</p>
+      <div id="budList"></div>
+      <p class="auth-sub" id="budMsg" role="status"></p>
     </div>
 
     <div class="auth-card spanel" data-sub="tampilan" hidden>
@@ -393,7 +412,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
         <button type="button" data-t="light" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F2F4F1 55%,#FFFFFF 55% 80%,#1F4E79 80%)"></span>Terang</button>
         <button type="button" data-t="dark" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0F1613 55%,#18221E 55% 80%,#7FB0E0 80%)"></span>Gelap</button>
         <button type="button" data-t="hitam" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#000 55%,#111413 55% 80%,#7FB0E0 80%)"></span>Hitam</button>
-        <button type="button" data-t="biru" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#222F4C 55%,#26344F 55% 80%,#9DB8E0 80%)"></span>Biru</button>
+        <button type="button" data-t="biru" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0B2A78 55%,#14337F 55% 80%,#8EC1FF 80%)"></span>Biru</button>
         <button type="button" data-t="mawar" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F3E4E1 55%,#FBF3F1 55% 80%,#8C2F39 80%)"></span>Mawar</button>
       </div>
       <p class="auth-sub" style="margin-top:16px">Ukuran teks (berlaku di perangkat ini)</p>
@@ -430,6 +449,15 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       <button type="button" class="btn ghost" id="expCsv">Unduh CSV (bisa dibuka di Excel)</button>
       <button type="button" class="btn ghost" id="expJson">Unduh cadangan lengkap (JSON)</button>
       <p class="auth-sub" id="expMsg" role="status"></p>
+      <h2 class="chart-title" style="margin-top:18px">Pulihkan</h2>
+      <p class="auth-sub">Pilih file cadangan JSON dari aplikasi ini. Hanya menambah catatan yang belum ada, data yang sudah ada tidak diubah.</p>
+      <button type="button" class="btn ghost" id="expImp">Pulihkan dari cadangan (JSON)</button>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+      <div class="brow" id="impAct" hidden>
+        <button class="btn" type="button" id="impGo">Impor sekarang</button>
+        <button class="btn ghost" type="button" id="impNo">Batal</button>
+      </div>
+      <p class="auth-sub" id="impMsg" role="status"></p>
     </div>
 
     <div class="auth-card spanel" data-sub="tentang" hidden>
@@ -622,6 +650,12 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       <span style="grid-area:del"></span>
     </div>
     <div id="list" role="list"></div>
+  </section>
+
+  <section class="ledger" id="budSec" aria-label="Anggaran bulan ini" hidden>
+    <div class="tools"><span class="label">Anggaran bulan ini</span></div>
+    <p class="auth-sub" id="bsub" style="padding:0 12px 8px"></p>
+    <div id="blist"></div>
   </section>
 
   <section class="ledger" id="katSec" aria-label="Pengeluaran per kategori" hidden>
@@ -836,6 +870,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   var page = 'kas';      /* halaman yang sedang dibuka: 'kas' | 'tabungan' */
   var goals = [];        /* target tabungan; disimpan di koleksi yang sama dengan tipe 'target' */
   var rawAll = [];       /* dokumen mentah dari server, untuk cadangan */
+  var bud = {};          /* anggaran bulanan: id kategori -> batas (tipe 'anggaran') */
   var kats = [];         /* kategori pengeluaran (koleksi yang sama, tipe 'kategori') */
   var katSig = '', katTried = false, katEdit = null, katDelArm = null, katDelTimer = null;
   var editId = null;
@@ -1094,6 +1129,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     refreshKatSelects();
     if (!$('#cari').hidden) renderCari();
     if (!$('#pengaturan').hidden) renderKatList();
+    renderBud();
+    if (!$('#pengaturan').hidden && subNow === 'anggaran' && !$('#budList').contains(document.activeElement)) renderBudList();
     if (page === 'tabungan') { renderTab(); return; }
     var r = getRange();
     var today = todayStr();
@@ -1955,6 +1992,139 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     $('#expMsg').textContent = 'Cadangan JSON diunduh (' + rawAll.length + ' dokumen).';
   }
 
+  /* ================= ANGGARAN BULANAN =================
+     Dokumen: id 'ang-<idKategori>', { tipe:'anggaran', katId, jumlah, ts }. Berlaku tiap bulan. */
+  function cleanBud(raw) {
+    var m = {};
+    raw.forEach(function (d) {
+      if (d && d.tipe === 'anggaran' && typeof d.katId === 'string' && typeof d.jumlah === 'number' && isFinite(d.jumlah) && d.jumlah > 0) m[d.katId] = d.jumlah;
+    });
+    return m;
+  }
+  function renderBud() {
+    var sec = $('#budSec');
+    var aktif = kats.filter(function (g) { return bud[g.id] > 0; });
+    if (!aktif.length) { sec.hidden = true; return; }
+    var ym = todayStr().slice(0, 7);
+    var spent = {};
+    allItems.forEach(function (x) {
+      if (x.tipe === 'keluar' && x.tgl.slice(0, 7) === ym) { var k = katOf(x); if (k) spent[k] = (spent[k] || 0) + x.jumlah; }
+    });
+    $('#bsub').textContent = BLNF[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4);
+    var list = $('#blist');
+    list.textContent = '';
+    aktif.forEach(function (g) {
+      var s = spent[g.id] || 0, lim = bud[g.id], pct = Math.round(s / lim * 100);
+      var row = el('div', 'bgt');
+      row.append(el('span', 'kn', g.nama + ' · ' + pct + '%'), el('span', 'ka', rp(s) + ' / ' + rp(lim)));
+      var tr = el('div', 'track kb'), fl = el('div', 'fill' + (pct > 100 ? '' : (pct >= 80 ? ' bwarn' : ' gfill')));
+      fl.style.width = Math.min(100, s > 0 ? Math.max(2, pct) : 0) + '%';
+      tr.append(fl);
+      row.append(tr, el('span', 'bnote' + (s > lim ? ' over' : ''), s > lim ? 'Lebih ' + rp(s - lim) : 'Sisa ' + rp(lim - s)));
+      list.append(row);
+    });
+    sec.hidden = false;
+  }
+  function renderBudList() {
+    var box = $('#budList');
+    box.textContent = '';
+    if (!kats.length) { box.append(el('p', 'auth-sub', 'Belum ada kategori. Tambahkan dulu di Kategori.')); return; }
+    kats.forEach(function (g) {
+      var row = el('div', 'bitem');
+      var lb = el('label', null, g.nama);
+      var inp = el('input');
+      inp.type = 'text'; inp.inputMode = 'numeric'; inp.placeholder = 'Tanpa batas'; inp.autocomplete = 'off';
+      inp.id = 'bi-' + g.id; lb.htmlFor = inp.id;
+      inp.value = bud[g.id] > 0 ? nf.format(bud[g.id]) : '';
+      inp.addEventListener('change', function () {
+        var n = parseInt(inp.value.replace(/\D/g, '').slice(0, 11), 10) || 0;
+        inp.value = n > 0 ? nf.format(n) : '';
+        if (!backend) return;
+        var p = n > 0 ? backend.set('ang-' + g.id, { tipe: 'anggaran', katId: g.id, jumlah: n, ts: Date.now() }) : backend.remove('ang-' + g.id);
+        $('#budMsg').textContent = '';
+        p.then(function () { $('#budMsg').textContent = n > 0 ? 'Tersimpan: ' + g.nama + ' ' + rp(n) + ' per bulan.' : 'Batas ' + g.nama + ' dihapus.'; })
+          .catch(function () { $('#budMsg').textContent = 'Belum tersimpan. Coba lagi.'; });
+      });
+      row.append(lb, inp);
+      box.append(row);
+    });
+  }
+
+  /* ================= PULIHKAN DARI CADANGAN ================= */
+  var IMP_TIPE = ['masuk', 'keluar', 'setor', 'ambil', 'target', 'kategori', 'pengaturan', 'anggaran'];
+  var impPending = null;
+  function impOK(d) {
+    if (!d || typeof d !== 'object' || typeof d.id !== 'string' || !d.id || d.id.length > 100 ||
+        /[\/\s]/.test(d.id) || d.id === '.' || d.id === '..' || /^__.*__$/.test(d.id)) return false;
+    if (IMP_TIPE.indexOf(d.tipe) === -1) return false;
+    if (TIPE_VALID.indexOf(d.tipe) !== -1) {
+      return typeof d.jumlah === 'number' && isFinite(d.jumlah) && d.jumlah > 0 && typeof d.ket === 'string' &&
+        typeof d.tgl === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.tgl);
+    }
+    if (d.tipe === 'target' || d.tipe === 'kategori') return typeof d.nama === 'string' && !!d.nama.trim();
+    if (d.tipe === 'anggaran') return typeof d.katId === 'string' && typeof d.jumlah === 'number' && isFinite(d.jumlah) && d.jumlah > 0;
+    return true;
+  }
+  function impReset() {
+    impPending = null;
+    $('#impAct').hidden = true;
+    $('#impFile').value = '';
+  }
+  function impBaca(file) {
+    impReset();
+    var msg = $('#impMsg');
+    if (!ready || !backend) { msg.textContent = 'Data belum selesai dimuat. Coba sebentar lagi.'; return; }
+    if (file.size > 5 * 1024 * 1024) { msg.textContent = 'File terlalu besar untuk cadangan Buku Kas.'; return; }
+    var fr = new FileReader();
+    fr.onerror = function () { msg.textContent = 'File tidak bisa dibaca.'; };
+    fr.onload = function () {
+      var data;
+      try { data = JSON.parse(fr.result); } catch (e) { msg.textContent = 'File ini bukan cadangan JSON yang valid.'; return; }
+      if (!data || data.aplikasi !== 'Buku Kas' || !Array.isArray(data.dokumen)) { msg.textContent = 'File ini bukan cadangan Buku Kas.'; return; }
+      var ada = {};
+      rawAll.forEach(function (d) { ada[d.id] = true; });
+      var baru = [], sudah = 0, lewat = 0;
+      data.dokumen.forEach(function (d) {
+        if (!impOK(d)) { lewat++; return; }
+        if (ada[d.id]) { sudah++; return; }
+        var isi = {};
+        Object.keys(d).forEach(function (k) {
+          var v = d[k];
+          if (k !== 'id' && (v === null || typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) isi[k] = v;
+        });
+        baru.push({ id: d.id, data: isi });
+      });
+      var catatan = baru.filter(function (x) { return TIPE_VALID.indexOf(x.data.tipe) !== -1; }).length;
+      msg.textContent = 'Cadangan' + (data.diekspor ? ' tanggal ' + String(data.diekspor).slice(0, 10) : '') + ': ' + baru.length + ' dokumen baru (' + catatan + ' catatan), ' +
+        sudah + ' sudah ada' + (lewat ? ', ' + lewat + ' dilewati karena tidak valid' : '') + '.';
+      if (!baru.length) return;
+      impPending = baru;
+      $('#impAct').hidden = false;
+    };
+    fr.readAsText(file);
+  }
+  function impJalan() {
+    var daftar = impPending;
+    if (!daftar || !backend) return;
+    $('#impAct').hidden = true;
+    impPending = null;
+    var msg = $('#impMsg'), selesai = 0;
+    msg.textContent = 'Mengimpor…';
+    function ambil(i) {
+      if (i >= daftar.length) { msg.textContent = 'Selesai: ' + selesai + ' dokumen ditambahkan.'; impReset(); return; }
+      var potong = daftar.slice(i, i + 100);
+      Promise.all(potong.map(function (x) { return backend.set(x.id, x.data); })).then(function () {
+        selesai += potong.length;
+        msg.textContent = 'Mengimpor… ' + selesai + ' dari ' + daftar.length;
+        ambil(i + 100);
+      }).catch(function () {
+        msg.textContent = 'Berhenti di tengah jalan (' + selesai + ' dokumen sudah masuk). Pilih file yang sama lagi untuk melanjutkan.';
+        impReset();
+      });
+    }
+    ambil(0);
+  }
+
   /* ================= KATEGORI PENGELUARAN ================= */
   var KAT_BAWAAN = ['Makan', 'Transport', 'Belanja', 'Tagihan', 'Hiburan', 'Lainnya'];
   function cleanKats(raw) {
@@ -2160,6 +2330,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       allItems = clean(raw);
       goals = cleanGoals(raw);
       kats = cleanKats(raw);
+      bud = cleanBud(raw);
       if (!snap.metadata.fromCache) serverSynced = true;
       rebuild();
       ensureDefaultGoal();
@@ -2189,6 +2360,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     allItems = [];
     rawAll = [];
     kats = [];
+    bud = {};
     katTried = false;
     goals = [];
     tabSel = null;
@@ -2434,7 +2606,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   /* ---- Pengaturan ---- */
   var UKURAN = ['75', '88', '100', '118'];
   var TEMA = ['auto', 'light', 'dark', 'hitam', 'biru', 'mawar'];
-  var TEMA_BAR = { light: '#F2F4F1', dark: '#0F1613', hitam: '#000000', biru: '#222F4C', mawar: '#F6E7E3' };
+  var TEMA_BAR = { light: '#F2F4F1', dark: '#0F1613', hitam: '#000000', biru: '#0B2A78', mawar: '#F6E7E3' };
   function applyTema() {
     var tm = lsGet('bk-tema');
     if (TEMA.indexOf(tm) === -1) tm = 'auto';
@@ -2452,7 +2624,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     document.documentElement.style.fontSize = u + '%';
     return u;
   }
-  var SUB_JUDUL = { akun: 'Akun', kategori: 'Kategori pengeluaran', tampilan: 'Tampilan', data: 'Data', tentang: 'Tentang' };
+  var SUB_JUDUL = { akun: 'Akun', kategori: 'Kategori pengeluaran', anggaran: 'Anggaran bulanan', tampilan: 'Tampilan', data: 'Data', tentang: 'Tentang' };
   var subNow = '';
   function setSub(s) {
     subNow = s || '';
@@ -2461,6 +2633,8 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
       p.hidden = p.dataset.sub !== subNow;
     });
     $('#setTitle').textContent = subNow ? SUB_JUDUL[subNow] : 'Pengaturan';
+    if (subNow === 'anggaran') { $('#budMsg').textContent = ''; renderBudList(); }
+    if (subNow === 'data') { impReset(); $('#impMsg').textContent = ''; }
     window.scrollTo(0, 0);
   }
   function openPengaturan(sub) {
@@ -2481,6 +2655,10 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     setSub(typeof sub === 'string' ? sub : '');
   }
   $('#gear').addEventListener('click', function () { openPengaturan(); });
+  $('#expImp').addEventListener('click', function () { $('#impFile').click(); });
+  $('#impFile').addEventListener('change', function () { if (this.files && this.files[0]) impBaca(this.files[0]); });
+  $('#impGo').addEventListener('click', impJalan);
+  $('#impNo').addEventListener('click', function () { impReset(); $('#impMsg').textContent = 'Impor dibatalkan.'; });
   $('#setMenu').addEventListener('click', function (e) {
     var b = e.target.closest('[data-go]');
     if (b) setSub(b.dataset.go);
