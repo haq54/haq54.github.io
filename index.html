@@ -270,11 +270,11 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --grid: #232323; --axis: #333333;
 }
 :root[data-theme="biru"] {
-  --bg: #0A1F55; --bg-img: linear-gradient(180deg, #0B2A78 0%, #0A1F55 100%);
-  --surface: #14337F; --field: #0F2A6B; --ink: #F2F6FF; --muted: #B4C5EC;
-  --line: #2F4FA0; --accent: #8EC1FF; --accent-ink: #0A1F55; --in: #6EE0A6; --in-soft: #0F4A5A;
-  --out: #FFA091; --out-soft: #5A2A4A; color-scheme: dark;
-  --s1: #6FB1FF; --s2: #FF9F66; --s3: #4FD9A0; --grid: #2A4690; --axis: #3D5DB0;
+  --bg: #1B2740; --bg-img: linear-gradient(180deg, #222F4C 0%, #1B2740 100%);
+  --surface: #26344F; --field: #202C45; --ink: #E8EDF5; --muted: #A3B0C6;
+  --line: #36466A; --accent: #9DB8E0; --accent-ink: #1B2740; --in: #7FCFA6; --in-soft: #1F3D3F;
+  --out: #F0A596; --out-soft: #4A2F3E; color-scheme: dark;
+  --s1: #8AB4F0; --s2: #F0A878; --s3: #6FCFA8; --grid: #33425F; --axis: #46577A;
 }
 :root[data-theme="mawar"] {
   --bg: #F3E4E1; --bg-img: linear-gradient(180deg, #F6E7E3 0%, #EBD5D2 100%);
@@ -393,7 +393,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
         <button type="button" data-t="light" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F2F4F1 55%,#FFFFFF 55% 80%,#1F4E79 80%)"></span>Terang</button>
         <button type="button" data-t="dark" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0F1613 55%,#18221E 55% 80%,#7FB0E0 80%)"></span>Gelap</button>
         <button type="button" data-t="hitam" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#000 55%,#111413 55% 80%,#7FB0E0 80%)"></span>Hitam</button>
-        <button type="button" data-t="biru" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0B2A78 55%,#14337F 55% 80%,#8EC1FF 80%)"></span>Biru</button>
+        <button type="button" data-t="biru" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#222F4C 55%,#26344F 55% 80%,#9DB8E0 80%)"></span>Biru</button>
         <button type="button" data-t="mawar" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F3E4E1 55%,#FBF3F1 55% 80%,#8C2F39 80%)"></span>Mawar</button>
       </div>
       <p class="auth-sub" style="margin-top:16px">Ukuran teks (berlaku di perangkat ini)</p>
@@ -2434,7 +2434,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   /* ---- Pengaturan ---- */
   var UKURAN = ['75', '88', '100', '118'];
   var TEMA = ['auto', 'light', 'dark', 'hitam', 'biru', 'mawar'];
-  var TEMA_BAR = { light: '#F2F4F1', dark: '#0F1613', hitam: '#000000', biru: '#0B2A78', mawar: '#F6E7E3' };
+  var TEMA_BAR = { light: '#F2F4F1', dark: '#0F1613', hitam: '#000000', biru: '#222F4C', mawar: '#F6E7E3' };
   function applyTema() {
     var tm = lsGet('bk-tema');
     if (TEMA.indexOf(tm) === -1) tm = 'auto';
