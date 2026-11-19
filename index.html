@@ -5,6 +5,7 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1613">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F1">
 <meta charset="utf-8">
+<script>try { var _t = localStorage.getItem('bk-tema'); if (['light', 'dark', 'hitam', 'biru', 'mawar'].indexOf(_t) > -1) document.documentElement.setAttribute('data-theme', _t); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Buku Kas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,6 +14,7 @@
 <style>
 :root {
   color-scheme: light;
+  --bg-img: none;
   --bg: #F2F4F1;
   --surface: #FFFFFF;
   --field: #F6F8F5;
@@ -35,7 +37,7 @@
   --f-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme]) {
     --bg: #0F1613; --surface: #18221E; --field: #121B17; --ink: #E7EEEA; --muted: #93A39B;
     --line: #2A3832; --accent: #7FB0E0; --accent-ink: #0F1613; --in: #5CC58D; --in-soft: #173126;
     --out: #F0897A; --out-soft: #3A1D19; color-scheme: dark;
@@ -52,7 +54,7 @@
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 body {
   margin: 0;
-  background: var(--bg); color: var(--ink);
+  background-color: var(--bg); background-image: var(--bg-img); background-attachment: fixed; color: var(--ink);
   font: 15px/1.5 var(--f-body);
   padding-top: calc(24px + env(safe-area-inset-top, 0px));
   padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
@@ -260,6 +262,31 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 .auth-card .email { overflow-wrap: anywhere; font-weight: 600; color: var(--ink); }
 .sample { margin: 0; padding: 10px 12px; background: var(--field); border: 1px solid var(--line); border-radius: 8px; }
 .sample b { font-family: var(--f-mono); }
+/* ---- Tema tambahan ---- */
+:root[data-theme="hitam"] {
+  --bg: #000000; --surface: #111413; --field: #0A0C0B; --ink: #ECECEC; --muted: #9A9F9C;
+  --line: #262A28; --accent: #7FB0E0; --accent-ink: #000000; --in: #5CC58D; --in-soft: #0F2A1D;
+  --out: #F0897A; --out-soft: #2E1612; color-scheme: dark;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --grid: #232323; --axis: #333333;
+}
+:root[data-theme="biru"] {
+  --bg: #0A1F55; --bg-img: linear-gradient(180deg, #0B2A78 0%, #0A1F55 100%);
+  --surface: #14337F; --field: #0F2A6B; --ink: #F2F6FF; --muted: #B4C5EC;
+  --line: #2F4FA0; --accent: #8EC1FF; --accent-ink: #0A1F55; --in: #6EE0A6; --in-soft: #0F4A5A;
+  --out: #FFA091; --out-soft: #5A2A4A; color-scheme: dark;
+  --s1: #6FB1FF; --s2: #FF9F66; --s3: #4FD9A0; --grid: #2A4690; --axis: #3D5DB0;
+}
+:root[data-theme="mawar"] {
+  --bg: #F3E4E1; --bg-img: linear-gradient(180deg, #F6E7E3 0%, #EBD5D2 100%);
+  --surface: #FBF3F1; --field: #F5E8E5; --ink: #2E1D1D; --muted: #6B5453;
+  --line: #E2CBC8; --accent: #8C2F39; --accent-ink: #FFFFFF; --in: #176B42; --in-soft: #DDEEDF;
+  --out: #A8322A; --out-soft: #F6DAD5; color-scheme: light;
+  --s1: #2a78d6; --s2: #d95926; --s3: #1baf7a; --grid: #E6D3D0; --axis: #CDB5B2;
+}
+.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.themes button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.themes button[aria-pressed="true"] { border-color: var(--accent); }
+.themes .sw { display: block; width: 100%; height: 34px; border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.45); }
 .smenu { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .smenu button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
 .smenu button:last-child { border-bottom: 0; }
@@ -347,7 +374,7 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     <div class="smenu" id="setMenu">
       <button type="button" data-go="akun"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span><b>Akun</b><small id="akunSub">Email dan keluar</small></span></button>
       <button type="button" data-go="kategori"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1"/></svg><span><b>Kategori</b><small>Tambah, ubah, atau hapus kategori</small></span></button>
-      <button type="button" data-go="tampilan"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span><b>Tampilan</b><small>Ukuran teks</small></span></button>
+      <button type="button" data-go="tampilan"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span><b>Tampilan</b><small>Tema warna dan ukuran teks</small></span></button>
       <button type="button" data-go="data"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg><span><b>Data</b><small>Unduh CSV dan cadangan JSON</small></span></button>
       <button type="button" data-go="tentang"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span><b>Tentang</b><small>Versi dan privasi</small></span></button>
     </div>
@@ -360,7 +387,16 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
 
     <div class="auth-card spanel" data-sub="tampilan" hidden>
       <h2 class="chart-title">Tampilan</h2>
-      <p class="auth-sub">Ukuran teks (berlaku di perangkat ini)</p>
+      <p class="auth-sub">Tema warna (berlaku di perangkat ini)</p>
+      <div class="themes" id="temaGrid">
+        <button type="button" data-t="auto" aria-pressed="false"><span class="sw" style="background:linear-gradient(135deg,#F2F4F1 50%,#0F1613 50%)"></span>Otomatis</button>
+        <button type="button" data-t="light" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F2F4F1 55%,#FFFFFF 55% 80%,#1F4E79 80%)"></span>Terang</button>
+        <button type="button" data-t="dark" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0F1613 55%,#18221E 55% 80%,#7FB0E0 80%)"></span>Gelap</button>
+        <button type="button" data-t="hitam" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#000 55%,#111413 55% 80%,#7FB0E0 80%)"></span>Hitam</button>
+        <button type="button" data-t="biru" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0B2A78 55%,#14337F 55% 80%,#8EC1FF 80%)"></span>Biru</button>
+        <button type="button" data-t="mawar" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#F3E4E1 55%,#FBF3F1 55% 80%,#8C2F39 80%)"></span>Mawar</button>
+      </div>
+      <p class="auth-sub" style="margin-top:16px">Ukuran teks (berlaku di perangkat ini)</p>
       <div class="views" id="ukuran">
         <button type="button" data-u="75" aria-pressed="false">Mini</button>
         <button type="button" data-u="88" aria-pressed="false">Kecil</button>
@@ -2397,6 +2433,19 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   $('#pilihBatal').addEventListener('click', function () { showScreen('app'); });
   /* ---- Pengaturan ---- */
   var UKURAN = ['75', '88', '100', '118'];
+  var TEMA = ['auto', 'light', 'dark', 'hitam', 'biru', 'mawar'];
+  var TEMA_BAR = { light: '#F2F4F1', dark: '#0F1613', hitam: '#000000', biru: '#0B2A78', mawar: '#F6E7E3' };
+  function applyTema() {
+    var tm = lsGet('bk-tema');
+    if (TEMA.indexOf(tm) === -1) tm = 'auto';
+    if (tm === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', tm);
+    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) {
+      var gelap = /dark/.test(m.getAttribute('media') || '');
+      m.setAttribute('content', tm === 'auto' ? (gelap ? '#0F1613' : '#F2F4F1') : TEMA_BAR[tm]);
+    });
+    return tm;
+  }
   function applyUkuran() {
     var u = lsGet('bk-ukuran');
     if (UKURAN.indexOf(u) === -1) u = '100';
@@ -2416,6 +2465,10 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
   }
   function openPengaturan(sub) {
     var u = applyUkuran();
+    var tm = applyTema();
+    Array.prototype.forEach.call($('#temaGrid').children, function (b) {
+      b.setAttribute('aria-pressed', b.dataset.t === tm ? 'true' : 'false');
+    });
     Array.prototype.forEach.call(document.querySelectorAll('#pengaturan .opt'), function (b) {
       b.setAttribute('aria-pressed', b.dataset.f === fitur ? 'true' : 'false');
     });
@@ -2440,9 +2493,12 @@ h1 { font: 700 1.6rem/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; 
     var o = e.target.closest('.opt');
     if (o) { setFitur(o.dataset.f); openPengaturan(subNow); return; }
     var u = e.target.closest('[data-u]');
-    if (u) { lsSet('bk-ukuran', u.dataset.u); openPengaturan(subNow); }
+    if (u) { lsSet('bk-ukuran', u.dataset.u); openPengaturan(subNow); return; }
+    var th = e.target.closest('[data-t]');
+    if (th) { lsSet('bk-tema', th.dataset.t); openPengaturan(subNow); }
   });
   applyUkuran();
+  applyTema();
   function tutupMode() { $('#modeMenu').hidden = true; $('#modeBtn').setAttribute('aria-expanded', 'false'); }
   $('#modeBtn').addEventListener('click', function () {
     var buka = $('#modeMenu').hidden;
