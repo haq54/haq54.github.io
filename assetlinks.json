@@ -1,0 +1,26 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.haq54.twa",
+      "sha256_cert_fingerprints": [
+        "DE:50:29:C7:11:44:12:41:95:36:56:B8:C3:7F:FE:F1:9B:6B:F8:1E:60:0B:66:BE:BE:13:07:82:CE:FC:C6:FE"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.haq54.kaskelas",
+      "sha256_cert_fingerprints": [
+        "B9:2C:13:77:E5:A2:6E:64:EC:F5:96:E5:DE:9D:FA:D3:A4:32:1D:17:4A:F1:DC:9A:27:74:25:B7:E4:4F:FA:65"
+      ]
+    }
+  }
+]
